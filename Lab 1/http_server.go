@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -188,19 +187,54 @@ func postHandler(connection net.Conn, req *http.Request) {
 	// For POST requests, please make sure that you store the files
 	//and make them accessible with a subsequent  GET request
 
-	fmt.Println(req.Method)
-	fmt.Println(req.Body)
+	fullPath := req.URL
+	filename := path.Base(req.URL.Path)
 
+	fmt.Println(req.Method)
+	fmt.Println(fullPath)
+	fmt.Println(filename)
+
+	//fileType := req.Header.Get("Content-Type")
+	var extension = filepath.Ext(filename)
+	var fileType string
+	if len(extension) > 0 {
+		fileType = extension[1:len(extension)]
+	} else {
+		fileType = extension
+	}
+
+	if fullPath.String() == "/" {
+		errorHandler(connection, 400, "")
+		return
+	} else {
+		switch fileType {
+		//Server should accept requests for files ending in
+		//html, txt, gif, jpeg, jpg, or css
+		case "html", "txt", "gif", "jpeg", "jpg", "css":
+			fmt.Println(fileType)
+		default:
+			//If the client requests a file with any other extension,
+			//the web server must respond with a well-formed 400 "Bad Request" code
+			errorHandler(connection, 400, "")
+			return
+		}
+	}
+
+	fmt.Println(req.Body)
 	f, err := os.Create(path.Base(req.URL.Path))
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	_, err = io.Copy(f, req.Body)
-	if err != nil {
-		fmt.Println("Error")
+		fmt.Println("Error creating file for POST request")
 		return
 	}
+
+	//_, err = f.ReadFrom(req.Body)
+	_, err = io.Copy(f, req.Body)
+	if err != nil {
+		fmt.Println("Error writing to created file for POST request")
+		return
+	}
+
+	req.Body.Close()
 
 	fmt.Fprint(connection, "HTTP/1.1 201 CREATED\r\n")
 }
