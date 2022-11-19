@@ -1,289 +1,164 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
+	"image"
+	"image/gif"
+	"image/jpeg"
 	"io"
 	"net"
 	"net/http"
 	"os"
 	"path"
 	"path/filepath"
-	"sync"
 )
 
 var port string
-var nbrOfClients = 0
-var lock sync.Mutex
 
 func main() {
-	port = os.Args[1]
-	if len(port) == 0 {
-		port = ":80"
+	if len(os.Args) < 2 {
+		port = ":8080"
+	} else {
+		port = os.Args[1]
 	}
-	fmt.Println("Port:", port)
+	fmt.Println("Port", port)
 
 	//Establish a socket connection
 	listener, error := net.Listen("tcp", port)
 	if error != nil {
-		fmt.Println("Error on server start")
+		fmt.Printf("Error on server start: %v\n", error)
 		listener.Close()
 		os.Exit(1)
 	}
 
-	for {
-		//Wait for incoming client connections
-		//Each new client request is accepted
-		connection, error := listener.Accept()
-		if error != nil {
-			fmt.Println("Error on client connection")
-			connection.Close()
-			continue
-		}
+	path, err := os.Getwd()
+	if error != nil {
+		fmt.Printf("Couldnt find working directory: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Printf("Home directory Path: %s\n", path)
 
-		//To avoid overwhelming your server, you should not create more than a reasonable number of child processes
-		//(for this assignment, use at most 10), in which case your server should wait until one of its ongoing child
-		//processes exits before forking a new one to handle the new request.
-		for nbrOfClients >= 10 {
-		}
+	//Handlers
+	http.HandleFunc("/", rootHandler)
+	//http.Handle("/", fileHandler)
 
-		//Pass client connection to spawned child process to handle Client
-		go handleClient(connection)
-
+	//Serve http requests that come through
+	if error = http.Serve(listener, nil); error != nil {
+		fmt.Printf("Error serving HTTP requests: %v\n", error)
 	}
 }
 
-// Handles client entrance and exit
-func handleClient(connection net.Conn) {
-	lock.Lock()
-	nbrOfClients++
-	lock.Unlock()
+func rootHandler(w http.ResponseWriter, r *http.Request) {
+	fullPath := r.URL
+	filename := path.Base(r.URL.Path)
+	var fType string
 
-	reader := bufio.NewReader(connection)
-	req, error := http.ReadRequest(reader)
+	var extension = filepath.Ext(filename)
+	if len(extension) > 0 {
+		fType = extension[1:len(extension)]
+	} else {
+		fType = extension
+	}
 
-	//res, _ := httputil.DumpRequest(req, true)
-	if error != nil {
-		fmt.Println("Bad request")
-		errorHandler(connection, 404, "Unable To Serve Bad Request")
+	if filename == "favicon.ico" || !checkMethod(w, r) {
 		return
 	}
-	//fmt.Println(res)
 
-	handleRequest(connection, req)
-	connection.Close()
+	if filename == "/" {
+		fmt.Fprintf(w, "Hello, Welcome to the Main Page")
+		return
+	} else if !validFileType(w, fType) {
+		return
+	}
 
-	lock.Lock()
-	nbrOfClients--
-	lock.Unlock()
+	fmt.Printf("File-path: %s\n", fullPath)
+	fmt.Printf("File-name: %s\n", filename)
+	fmt.Printf("File-type: %s\n", fType)
+
+	if r.Method == "POST" {
+		postHandler(w, r, fType)
+	} else {
+		getHandler(w, r)
+	}
 }
 
-// Handles client request
-func handleRequest(connection net.Conn, req *http.Request) {
-	fmt.Println(req.Method)
+func getHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("---------- <sending file> ----------")
+	http.ServeFile(w, r, "./"+r.URL.String())
+}
 
-	switch req.Method {
-	case "GET":
-		getHandler(connection, req)
-	case "POST":
-		postHandler(connection, req)
+// Works except for corruption of photofiles
+func postHandler(w http.ResponseWriter, r *http.Request, fType string) {
+	fmt.Println("---------- <receiving file> ----------")
+
+	f, error := os.Create(path.Base(r.URL.Path))
+	if error != nil {
+		fmt.Printf("Error on create file <POST>: %v\n", error)
+		http.Error(w, "Error on create file <POST>: "+error.Error(), 500)
+
+		return
+	}
+
+	switch fType {
+	case "jpeg", "jpg", "gif":
+		{
+			img, _, error := image.Decode(r.Body)
+			if error != nil {
+				fmt.Printf("Error on decoding request data to image <POST>: %v\n", error)
+				http.Error(w, "Error on decoding request data to image <POST>: "+error.Error(), 500)
+				return
+			}
+
+			if fType == "gif" {
+				error = gif.Encode(f, img, nil)
+			} else {
+				error = jpeg.Encode(f, img, nil)
+			}
+
+			if error != nil {
+				fmt.Printf("Error on writing image to file <POST>: %v\n", error)
+				http.Error(w, "Error on writing image to file <POST>: "+error.Error(), 500)
+				return
+			}
+
+		}
 	default:
-		errorHandler(connection, 501, "Method Not Implemented")
-	}
-}
-
-// Handles GET requests
-func getHandler(connection net.Conn, req *http.Request) {
-	//Ignore annoying GET requests for favicon.ico
-	if path.Base(req.URL.Path) == "favicon.ico" {
-		return
-	}
-
-	fullPath := req.URL
-	filename := path.Base(req.URL.Path)
-	contentType := req.Header.Get("Content-type")
-
-	fmt.Println(fullPath)
-	fmt.Println(filename)
-	fmt.Println(contentType)
-
-	//fileType := req.Header.Get("Content-Type")
-	var extension = filepath.Ext(filename)
-	var fileType string
-	if len(extension) > 0 {
-		fileType = extension[1:len(extension)]
-	} else {
-		fileType = extension
-	}
-
-	if fullPath.String() == "/" {
-
-	} else {
-
-		switch fileType {
-		//Server should accept requests for files ending in
-		//html, txt, gif, jpeg, jpg, or css
-		case "html", "txt", "gif", "jpeg", "jpg", "css":
-			fmt.Println(fileType)
-		default:
-			//If the client requests a file with any other extension,
-			//the web server must respond with a well-formed 400 "Bad Request" code
-			errorHandler(connection, 400, "")
-			return
-		}
-		fileGetHandler(connection, filename, fileType)
-		return
-	}
-
-	//Transmit them to the client with a Content-Type of
-	//text/html, text/plain, image/gif, image/jpeg, image/jpeg,
-	//or text/css, respectively
-	body := "Hello Zakariya, Welcome"
-	fmt.Fprint(connection, "HTTP/1.1 200 OK\r\n")
-	fmt.Fprintf(connection, "Content-Length: %d\r\n", len(body))
-	fmt.Fprint(connection, "Content-Type: text/html\r\n")
-	fmt.Fprint(connection, "\r\n")
-	fmt.Fprint(connection, body)
-}
-
-func fileGetHandler(connection net.Conn, fPath string, ftype string) {
-	fmt.Println("Sending file")
-	myDir, error := os.Getwd()
-	if error != nil {
-		fmt.Println("Error on finding working directory")
-		fmt.Println(error)
-	}
-	fmt.Println(myDir)
-
-	info, err := os.Stat(fPath)
-	if os.IsNotExist(err) {
-		fmt.Println("File doesnt exist")
-		errorHandler(connection, 404, "File doesnt exists")
-		return
-	}
-	size := info.Size()
-
-	//file, error1 := os.Open(fPath)
-
-	file, error1 := os.Open(fPath)
-	if os.IsNotExist(error1) {
-		fmt.Println("writing File failed")
-		return
-	}
-
-	//file.Read()
-	writer := bufio.NewWriter(connection)
-
-	fmt.Fprint(connection, "HTTP/1.1 200 OK\r\n")
-	fmt.Fprintf(connection, "Content-Length: %d\r\n", size)
-	fmt.Fprintf(connection, "Content-Type: %s\r\n", contentTypeHandler(ftype))
-	fmt.Fprint(connection, "\r\n")
-	fmt.Fprint(connection, file)
-	io.Copy(writer, file)
-}
-
-// Handles POST requests
-func postHandler(connection net.Conn, req *http.Request) {
-	// For POST requests, please make sure that you store the files
-	//and make them accessible with a subsequent  GET request
-
-	fullPath := req.URL
-	filename := path.Base(req.URL.Path)
-
-	fmt.Println(req.Method)
-	fmt.Println(fullPath)
-	fmt.Println(filename)
-
-	//fileType := req.Header.Get("Content-Type")
-	var extension = filepath.Ext(filename)
-	var fileType string
-	if len(extension) > 0 {
-		fileType = extension[1:len(extension)]
-	} else {
-		fileType = extension
-	}
-
-	if fullPath.String() == "/" {
-		errorHandler(connection, 400, "")
-		return
-	} else {
-		switch fileType {
-		//Server should accept requests for files ending in
-		//html, txt, gif, jpeg, jpg, or css
-		case "html", "txt", "gif", "jpeg", "jpg", "css":
-			fmt.Println(fileType)
-		default:
-			//If the client requests a file with any other extension,
-			//the web server must respond with a well-formed 400 "Bad Request" code
-			errorHandler(connection, 400, "")
-			return
+		{
+			_, error = io.Copy(f, r.Body)
+			if error != nil {
+				fmt.Printf("Error on writing to file <POST>: %v\n", error)
+				r.Body.Close()
+				return
+			}
 		}
 	}
 
-	fmt.Println(req.Body)
-	f, err := os.Create(path.Base(req.URL.Path))
-	if err != nil {
-		fmt.Println("Error creating file for POST request")
-		return
-	}
-
-	//_, err = f.ReadFrom(req.Body)
-	_, err = io.Copy(f, req.Body)
-	if err != nil {
-		fmt.Println("Error writing to created file for POST request")
-		return
-	}
-
-	req.Body.Close()
-
-	fmt.Fprint(connection, "HTTP/1.1 201 CREATED\r\n")
+	r.Body.Close()
+	fmt.Println("---------- <received file> ----------")
+	w.WriteHeader(http.StatusCreated)
 }
 
-func contentTypeHandler(ftype string) string {
-	switch ftype {
-	case "html":
-		return "text/html"
-	case "txt":
-		return "text/plain"
-	case "gif":
-		return "image/gif"
-	case "jpeg":
-		return "image/jpeg"
-	case "jpg":
-		return "image/jpeg"
-	case "css":
-		return "text/css"
+// Helper Methods
+func checkMethod(w http.ResponseWriter, r *http.Request) bool {
+	fmt.Printf("Checked Method: %s\n", r.Method)
+
+	switch r.Method {
+	case "GET":
+		return true
+	case "POST":
+		return true
+	default:
+		http.Error(w, "Request Method Is Currently Not Supported", 501)
+		return false
 	}
-
-	return ""
 }
 
-// Handles any faulty or unsupported requests
-func errorHandler(connection net.Conn, errorCode int, msg string) {
-	if errorCode == 501 {
-		fmt.Fprint(connection, "HTTP/1.1 501 Not Implemented\r\n")
-	} else if errorCode == 404 {
-		fmt.Fprint(connection, "HTTP/1.1 404 Not Found\r\n")
-	} else {
-		fmt.Fprint(connection, "HTTP/1.1 400 Bad Request\r\n")
+func validFileType(w http.ResponseWriter, fType string) bool {
+	switch fType {
+	case "html", "txt", "gif", "jpeg", "jpg", "css":
+		return true
+	default:
+		http.Error(w, "File type not supported", 400)
+		return false
 	}
-
-	body := msg
-
-	fmt.Fprintf(connection, "Content-Length: %d\r\n", len(body))
-	fmt.Fprint(connection, "Content-Type: text/html\r\n")
-	fmt.Fprint(connection, "\r\n")
-	fmt.Fprint(connection, body)
 }
-
-func sendHandler(connection net.Conn, body string, header string, contentType string) {
-	fmt.Fprint(connection, "%s\r\n", header)
-	fmt.Fprintf(connection, "Content-Length: %d\r\n", len(body))
-	fmt.Fprint(connection, "Content-Type: %s\r\n", contentType)
-	fmt.Fprint(connection, "\r\n")
-	fmt.Fprint(connection, body)
-}
-
-/*
-curl -i -X GET http://localhost:8080
-*/
