@@ -15,7 +15,12 @@ import (
 
 var port string
 
+const maxClients = 10
+
+var semaphore = make(chan struct{}, maxClients)
+
 func main() {
+
 	if len(os.Args) < 2 {
 		port = ":8080"
 	} else {
@@ -49,6 +54,9 @@ func main() {
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
+	semaphore <- struct{}{}
+	defer func() { <-semaphore }()
+
 	fullPath := r.URL
 	filename := path.Base(r.URL.Path)
 	var fType string
@@ -106,6 +114,7 @@ func postHandler(w http.ResponseWriter, r *http.Request, fType string) {
 			if error != nil {
 				fmt.Printf("Error on decoding request data to image <POST>: %v\n", error)
 				http.Error(w, "Error on decoding request data to image <POST>: "+error.Error(), 500)
+				r.Body.Close()
 				return
 			}
 
@@ -118,6 +127,7 @@ func postHandler(w http.ResponseWriter, r *http.Request, fType string) {
 			if error != nil {
 				fmt.Printf("Error on writing image to file <POST>: %v\n", error)
 				http.Error(w, "Error on writing image to file <POST>: "+error.Error(), 500)
+				r.Body.Close()
 				return
 			}
 
@@ -127,6 +137,7 @@ func postHandler(w http.ResponseWriter, r *http.Request, fType string) {
 			_, error = io.Copy(f, r.Body)
 			if error != nil {
 				fmt.Printf("Error on writing to file <POST>: %v\n", error)
+				http.Error(w, "Error on writing to file <POST>: "+error.Error(), 500)
 				r.Body.Close()
 				return
 			}
