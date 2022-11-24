@@ -20,4 +20,4 @@ RUN go build -o /proxy_server
 EXPOSE 1234
 
 # Run the app binary when we run the container
-ENTRYPOINT ["/proxy_server", ":1234", "http://192.168.144.1:8080/"]
+ENTRYPOINT ["/proxy_server", ":1234", "http://localhost:8080/"]
