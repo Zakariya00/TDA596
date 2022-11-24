@@ -1,4 +1,24 @@
-**Setup**  
+  **Cloud Acess**  
+  Server(s) available on the Cloud  (current addresses)
+    
+  http_server URL  : http://ec2-18-209-56-42.compute-1.amazonaws.com:8080/  
+  proxy_server URL : http://ec2-18-209-56-42.compute-1.amazonaws.com:1234/
+    
+  GET Requests: Possible both through the browser and command promt  
+  Promt Example:  
+  curl -i -X GET http://ec2-18-209-56-42.compute-1.amazonaws.com:8080/ 
+  
+  POST Requests: Works with format:  
+  curl -i -d @fileToSendName.fileType http://ec2-18-209-56-42.compute-1.amazonaws.com:8080/nameToSaveFileUnder.typeToSaveUnder  
+  Example:  
+  curl -i -d @test5.jpg http://ec2-18-209-56-42.compute-1.amazonaws.com:8080/test5.jpg
+
+ 
+    
+  
+
+------------------------------------------------------------------------
+***Setup***  
 <1> Download files  
 <2> Run console commands from file directory  
 <3> If docker is not installed, install it.  
