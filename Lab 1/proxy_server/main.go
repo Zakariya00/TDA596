@@ -62,7 +62,7 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(resp.StatusCode)
 	_, err = io.Copy(w, resp.Body)
 	if err != nil {
-		http.Error(w, "Error in forwarding main server respons: "+err.Error(), 500)
+		http.Error(w, "Error in forwarding main server response: "+err.Error(), 500)
 		return
 	}
 }
