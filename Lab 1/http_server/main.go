@@ -2,9 +2,6 @@ package main
 
 import (
 	"fmt"
-	"image"
-	"image/gif"
-	"image/jpeg"
 	"io"
 	"net"
 	"net/http"
@@ -14,6 +11,7 @@ import (
 )
 
 var port string
+
 const maxClients = 10 // Maximum client that server handles simultaneously
 var sem chan int      // Semaphore, syncing mechanism for Server
 
@@ -69,9 +67,9 @@ func serverHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method == "POST" {
-		postHandler(w, r, getFileType(r))
+		postHandler(w, r)
 	} else {
-		getHandler(w, r, getFileType(r))
+		getHandler(w, r, getFileType(path.Base(r.URL.Path)))
 	}
 }
 
@@ -88,55 +86,47 @@ func getHandler(w http.ResponseWriter, r *http.Request, fType string) {
 }
 
 // Handles POST requests
-func postHandler(w http.ResponseWriter, r *http.Request, fType string) {
-	if path.Base(r.URL.Path) == "/" {
-		http.Error(w, "Need a file name in the URL for a valid POST request", 400)
+func postHandler(w http.ResponseWriter, r *http.Request) {
+	// Parse our multipart form, 10 << 20 specifies a maximum
+	// upload of 10 MB files.
+	r.ParseMultipartForm(10 << 20)
+	// FormFile returns the first file for the given key `myFile`
+	// it also returns the FileHeader so we can get the Filename,
+	// the Header and the size of the file
+	file, handler, err := r.FormFile("myFile")
+	if err != nil {
+		http.Error(w, "Error on retrieving file <POST>: "+err.Error(), 500)
 		return
-	} else if !validFileType(w, fType) {
+	}
+	defer file.Close()
+
+	//check for valid file type
+	if !validFileType(w, getFileType(handler.Filename)) {
 		return
 	}
 
-	defer r.Body.Close()
-	//Create file with the given file name in URL Request
-	f, err := os.Create(path.Base(r.URL.Path))
+	fmt.Printf("Uploaded File: %+v\n", handler.Filename)
+	fmt.Printf("File Size: %+v\n", handler.Size)
+	fmt.Printf("MIME Header: %+v\n", handler.Header)
+
+	// Create Local file
+	f, err := os.Create(handler.Filename)
 	if err != nil {
 		http.Error(w, "Error on create file <POST>: "+err.Error(), 500)
 		return
 	}
 	defer f.Close()
 
-	//Process sent file by file type
-	switch fType {
-	case "jpeg", "jpg", "gif":
-		{
-			img, _, err := image.Decode(r.Body)
-			if err != nil {
-				http.Error(w, "Error on decoding request data to image <POST>: "+err.Error(), 500)
-				return
-			}
-
-			if fType == "gif" {
-				err = gif.Encode(f, img, nil)
-			} else {
-				err = jpeg.Encode(f, img, nil)
-			}
-
-			if err != nil {
-				http.Error(w, "Error on writing image to file <POST>: "+err.Error(), 500)
-				return
-			}
-		}
-	default:
-		{
-			_, err = io.Copy(f, r.Body)
-			if err != nil {
-				http.Error(w, "Error on writing to file <POST>: "+err.Error(), 500)
-				return
-			}
-		}
+	// Write to local file within our directory that follows
+	_, err = io.Copy(f, file)
+	if err != nil {
+		http.Error(w, "Error on writing to file <POST>: "+err.Error(), 500)
+		return
 	}
 
+	// return that we have successfully uploaded client file!
 	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte("Successfully Uploaded File,\nFeel free to visit again!!"))
 }
 
 // Check for valid Http Requesting Method
@@ -153,10 +143,8 @@ func checkMethod(w http.ResponseWriter, r *http.Request) bool {
 }
 
 // Get file type from request URL
-func getFileType(r *http.Request) string {
-	filename := path.Base(r.URL.Path)
+func getFileType(filename string) string {
 	var fType string
-
 	var extension = filepath.Ext(filename)
 	if len(extension) > 0 {
 		fType = extension[1:]
