@@ -3,18 +3,14 @@
   http_server URL  : http://ec2-18-209-56-42.compute-1.amazonaws.com:8080/  
   proxy_server URL : http://ec2-18-209-56-42.compute-1.amazonaws.com:1234/  
       
-      
-  Docker Repositories (Public):  
-  http_server   : https://hub.docker.com/repository/docker/zakariya00/http_server  
-  proxy_server  : https://hub.docker.com/repository/docker/zakariya00/proxy_server  
-    
-    
-    
-      
-    
+  
   GET Requests: Possible both through the browser and command promt  
   POST Requests: Works with supplied html file named index. Has been uploaded to cloud server    
-  Link: http://ec2-18-209-56-42.compute-1.amazonaws.com:8080/uploadMenu.html  
+  Link: http://ec2-18-209-56-42.compute-1.amazonaws.com:8080/uploadMenu.html 
+    
+  Docker Repositories (Public):  
+  http_server   : https://hub.docker.com/repository/docker/zakariya00/http_server  
+  proxy_server  : https://hub.docker.com/repository/docker/zakariya00/proxy_server 
 
  
     
