@@ -13,13 +13,7 @@
       
     
   GET Requests: Possible both through the browser and command promt  
-  Promt Example:  
-  curl -i -X GET http://ec2-18-209-56-42.compute-1.amazonaws.com:8080/ 
-  
-  POST Requests: Works with format:  
-  curl -i -d @fileToSendName.fileType http://ec2-18-209-56-42.compute-1.amazonaws.com:8080/nameToSaveFileUnder.typeToSaveUnder  
-  Example:  
-  curl -i -d @test5.jpg http://ec2-18-209-56-42.compute-1.amazonaws.com:8080/test5.jpg
+  POST Requests: Works with supplied html file named index. Change html file value at server address change
 
  
     
