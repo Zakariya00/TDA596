@@ -142,7 +142,7 @@ func checkMethod(w http.ResponseWriter, r *http.Request) bool {
 	}
 }
 
-// Get file type from request URL
+// Get file type from request file name
 func getFileType(filename string) string {
 	var fType string
 	var extension = filepath.Ext(filename)
