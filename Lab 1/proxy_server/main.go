@@ -53,14 +53,18 @@ func proxyHandler(w http.ResponseWriter, r *http.Request) {
 func getHandler(w http.ResponseWriter, r *http.Request) {
 	resp, err := http.Get(forwardToServerURL + r.URL.String())
 	if err != nil {
-		http.Error(w, "Failure in forwarding request", 400)
+		http.Error(w, "Failure in forwarding request: "+err.Error(), 400)
 		return
 	}
 
 	defer resp.Body.Close()
 	copyHeader(w.Header(), resp.Header)
 	w.WriteHeader(resp.StatusCode)
-	io.Copy(w, resp.Body)
+	_, err = io.Copy(w, resp.Body)
+	if err != nil {
+		http.Error(w, "Error in forwarding main server respons: "+err.Error(), 500)
+		return
+	}
 }
 
 // Check for valid Http Requesting Method
