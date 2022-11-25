@@ -5,7 +5,8 @@
       
   
   GET Requests: Possible both through the browser and command promt  
-  POST Requests: Works with supplied html file named index. Has been uploaded to cloud server    
+  POST Requests: Works with supplied html file named index (change sending address on need).  
+  Has been uploaded to cloud server    
   Link: http://ec2-18-209-56-42.compute-1.amazonaws.com:8080/uploadMenu.html 
     
   Docker Repositories (Public):  
@@ -14,7 +15,6 @@
 
  
     
-  
 
 ------------------------------------------------------------------------
 ***Setup***  
@@ -48,3 +48,25 @@ On code change rerun commands, 5 to 10.
 
 If you change the ports in Dockerfile then change them in docker run commands also:  
 docker run -p serverport:serverport -t http_server  
+  
+------------------------------------------------------------------------
+  **Solution Explaination**
+    
+    
+  http_server & proxy_server listen on the port given as command-line-arguments.  
+  http_server can run wwithout an arg, by using default port ":8080".  
+  proxy_server can not run without args, needs port and forwarding address.  
+    
+    
+  http_server employs limits the number of clients being served by using semaphores.  
+  Semaphores are hard-coded but easily configured to suppourt serving more client.  
+  Semaphore blocks and waits when 0. Avoiding busy wait that drains resources.  
+    
+    
+  http.serve runs in a loop and automatically starts a new go process when a http request comes in.  
+  Therefore can not be blocked with a semaphore before spawning a new go process. So requires to block and wait in the spawned handler. 
+  As such we still suffer the extra resource costs of spawning a new go process but they remain blocked until they acquire a semaphore.  
+  http_server suppourts methods GET and POST, sending error message on the rest.  
+    
+  proxy_server handles only GET requests. Making a new GET request to the main server, waiting for the response then copying it in  
+  the original client request response to the proxy_server. Handles any other method requests appropriately.
