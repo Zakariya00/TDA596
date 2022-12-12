@@ -71,8 +71,8 @@ func (chord *ChordNode) PrintState() {
 
 func (chord *ChordNode) Quit() {
 	fmt.Println("Exit Protocol Engaged: <Printing Final State>")
-	chord.put_all()
 	chord.PrintState()
+	chord.put_all()
 	os.Exit(0)
 }
 

@@ -68,11 +68,20 @@ func (chord *ChordNode) getSuccessors() ([]*Node, error) {
 }
 
 func (chord *ChordNode) notify() {
+	/*---------------------------------*/
+	if chord.Successor[0] != chord.LocalNode {
+		received := chord.get_all()
+		for key, value := range received {
+			chord.Bucket[key] = value
+		}
+	}
+	/*---------------------------------*/
 	address := chord.Successor[0].Address
 	_, err := chord.call(address, "ChordNode.Notified", RpcArgs{"", "Notifying", chord.LocalNode, nil, nil})
 	if err != nil {
 		if debugging {
 			fmt.Println("Failure to send Notification! <", err)
+			return
 		}
 	}
 }
@@ -99,6 +108,7 @@ func (chord *ChordNode) put_all() {
 	if err != nil {
 		if debugging {
 			fmt.Println("Failure to hand over keys! <", err)
+			return
 		}
 	}
 	for _, value := range chord.Bucket {
