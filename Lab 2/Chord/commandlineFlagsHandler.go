@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 	"time"
 )
 
@@ -22,12 +21,16 @@ func commandlineFlags() {
 
 	flag.Parse()
 
-	if *ip1 == "" || *port1 == "" {
-		fmt.Println("Local Node IP and Port must be declared")
-		os.Exit(1)
+	if *ip1 == "" {
+		fmt.Println("Local Node IP hasn't been set\n<Setting to default (localhost IP)>")
+		*ip1 = getLocalAddress()
 	}
-	debugging = *debuggingOn
+	if *port1 == "" {
+		fmt.Println("Local Node Port hasn't been set\n<Setting to default (8080)>")
+		*port1 = "8080"
+	}
 
+	debugging = *debuggingOn
 	if *delay1 > 60000 || *delay1 < 0 {
 		*delay1 = 30000
 	}
