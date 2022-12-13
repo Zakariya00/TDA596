@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 /* Finding Successor Functions */
 
 func (chord *ChordNode) find_successor(id string) (bool, *Node) {
@@ -14,19 +16,19 @@ func (chord *ChordNode) find_successor(id string) (bool, *Node) {
 }
 
 func (chord *ChordNode) closest_preceding_node(id string) (bool, *Node) {
-	for i := 159; i >= 0; i-- {
+	for i := keySize - 1; i >= 0; i-- {
 		if between1(chord.LocalNode.Id, chord.FingerTable[i].Start,
-			id, true) {
+			id, false) {
 			return false, chord.FingerTable[i].Successor
 		}
 	}
-	//return chord.Successor[0]
-	//return true, chord.Successor[0]
-	return false, chord.Successor[0]
+
+	//return false, chord.Successor[0]
+	return true, chord.LocalNode
 }
 
 func (chord *ChordNode) find(startNode *Node, id string) *Node {
-	maxSteps := 20
+	maxSteps := keySize - 1
 	var n = startNode
 	var succesor *Node
 	var flag bool
@@ -39,5 +41,8 @@ func (chord *ChordNode) find(startNode *Node, id string) *Node {
 		n = succesor
 	}
 
+	if debugging {
+		fmt.Println("Couldnt find Succesor, returning start node")
+	}
 	return startNode
 }
