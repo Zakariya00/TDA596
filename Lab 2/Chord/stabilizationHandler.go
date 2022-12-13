@@ -84,7 +84,7 @@ func (chord *ChordNode) fix_fingers() {
 	for {
 		previous := next - 1
 		if previous < 0 {
-			previous = 0
+			previous = keySize - 1
 		}
 
 		if between1(chord.FingerTable[previous].Start,
