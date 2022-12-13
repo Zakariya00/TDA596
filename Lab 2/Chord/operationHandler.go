@@ -47,12 +47,12 @@ func (chord *ChordNode) DeleteFile(filePath string) *Node {
 }
 
 func (chord *ChordNode) PrintState() {
-	fmt.Printf("Node: %+v\n", *chord.LocalNode)
 	if chord.Predecessor != nil {
 		fmt.Printf("Predecessor: %+v\n", *chord.Predecessor)
 	} else {
 		fmt.Printf("Predecessor: {nil}\n")
 	}
+	fmt.Printf("LocalNode  : %+v\n", *chord.LocalNode)
 
 	for i := 0; i < m; i++ {
 		fmt.Printf("Succesor[%d]: %+v\n", i, *chord.Successor[i])
