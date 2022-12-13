@@ -6,7 +6,6 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
-	"net/http/httputil"
 	"os"
 	"path"
 )
@@ -40,15 +39,18 @@ func postSender(address string, filePath string) {
 	}
 	writer.Close()
 
-	response, err := http.Post(uri, writer.FormDataContentType(), body)
+	_, err = http.Post(uri, writer.FormDataContentType(), body) //
 	if err != nil {
 		fmt.Println("Failed to send Post:", err)
 		return
 	}
+	/*
+		res, err := httputil.DumpResponse(response, true)
+		if err != nil {
+			return
+		}
+		fmt.Print(string(res) + "\n")
+	*/
 
-	res, err := httputil.DumpResponse(response, true)
-	if err != nil {
-		return
-	}
-	fmt.Print(string(res) + "\n")
+	fmt.Println("<Sent file>")
 }
