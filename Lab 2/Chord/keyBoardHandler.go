@@ -51,9 +51,26 @@ func (chord *ChordNode) handleKeyBoard() {
 	case "debug":
 		chord.Debug()
 
+	case "hash":
+		fmt.Println("Enter the string you wish to hash:")
+		var stringHash string
+		fmt.Scan(&stringHash)
+		fmt.Println(hash(stringHash))
+
+	case "find":
+		fmt.Println("Enter the key you wish to find the successor for:")
+		var key string
+		fmt.Scan(&key)
+		has := chord.find(chord.LocalNode, key)
+		fmt.Printf("found: %+v\n", *has)
+
+	case "whoami":
+		fmt.Printf("Node: %+v\n", *chord.LocalNode)
+
 	default:
-		fmt.Println("Command Is Not <Supported>/<Faulty Input>")
-		fmt.Printf("Supported Commands are:\nLookUp <file name>" +
-			"\nStoreFile <file path>\nPrintState <>\nPing <address>\nQuit <>\n")
+		fmt.Println("\nCommand Is Not <Supported>/<Faulty Input>")
+		fmt.Printf("Supported Commands are:\n- LookUp <file name>\n- StoreFile <file path>\n" +
+			"- PrintState <>\n- Quit <>\n\n" +
+			"For Debugging:\n- Ping <address>\n- Find <key>\n- Hash <string>\n- Whoami <>\n- Debug <>\n")
 	}
 }
