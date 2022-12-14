@@ -61,16 +61,31 @@ func (chord *ChordNode) handleKeyBoard() {
 		fmt.Println("Enter the key you wish to find the successor for:")
 		var key string
 		fmt.Scan(&key)
-		has := chord.find(chord.LocalNode, key)
-		fmt.Printf("found: %+v\n", *has)
+		if len([]rune(key)) == 40 {
+			has := chord.find(chord.LocalNode, key)
+			fmt.Printf("found: %+v\n", *has)
+		} else {
+			fmt.Printf("Not A Proper Key")
+		}
 
 	case "whoami":
 		fmt.Printf("Node: %+v\n", *chord.LocalNode)
 
+	case "sendtest":
+		fmt.Println("Which file?:")
+		var file string
+		fmt.Scan(&file)
+		if fileExists(file) {
+			fmt.Println("Receiving address?")
+			var address string
+			fmt.Scan(&address)
+			go postSender(address, file)
+		}
+
 	default:
 		fmt.Println("\nCommand Is Not <Supported>/<Faulty Input>")
 		fmt.Printf("Supported Commands are:\n- LookUp <file name>\n- StoreFile <file path>\n" +
-			"- PrintState <>\n- Quit <>\n\n" +
-			"For Debugging:\n- Ping <address>\n- Find <key>\n- Hash <string>\n- Whoami <>\n- Debug <>\n")
+			"- PrintState <>\n- Deletefile <file name>\n- Quit <>\n\nFor Debugging:\n- Ping <address>\n- Find <key>\n" +
+			"- Hash <string>\n- Whoami <>\n- sendtest <file name> <address>\n- Debug <>\n")
 	}
 }

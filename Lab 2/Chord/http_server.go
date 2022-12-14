@@ -83,16 +83,19 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 	// return that we have successfully uploaded client file!
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("Successfully Uploaded File,\nFeel free to visit again!!"))
-	fmt.Println("<Received file>")
 
 	/**/
-	if cNode.LookUp(handler.Filename).Address == cNode.LocalNode.Address {
-		go cNode.call(cNode.LocalNode.Address, "ChordNode.Put", RpcArgs{
-			hash(handler.Filename).String(),
-			handler.Filename, nil, nil, nil})
+	fileKey := hash(handler.Filename).String()
+	belongsTo := cNode.find(cNode.LocalNode, fileKey)
+
+	_, ok := cNode.Bucket[fileKey]
+	if belongsTo.Id == cNode.LocalNode.Id || ok {
+		fmt.Println("<Received file>")
+		cNode.Bucket[fileKey] = handler.Filename
 		return
 	}
-	cNode.StoreFile(handler.Filename)
+	fmt.Println("<Received then sent file>")
+	postSender(belongsTo.Address, handler.Filename)
 	/**/
 }
 

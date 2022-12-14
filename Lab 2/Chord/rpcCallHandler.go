@@ -68,14 +68,6 @@ func (chord *ChordNode) getSuccessors() ([]*Node, error) {
 }
 
 func (chord *ChordNode) notify() {
-	/*---------------------------------*/
-	if chord.Successor[0] != chord.LocalNode {
-		received := chord.get_all()
-		for key, value := range received {
-			chord.Bucket[key] = value
-		}
-	}
-	/*---------------------------------*/
 	address := chord.Successor[0].Address
 	_, err := chord.call(address, "ChordNode.Notified", RpcArgs{"", "Notifying", chord.LocalNode, nil, nil})
 	if err != nil {
@@ -93,7 +85,7 @@ func (chord *ChordNode) find_succesor(sendTo *Node, id string) (bool, *Node) {
 		if debugging {
 			fmt.Println("Failure to find_succesor request! <", err)
 		}
-		return false, chord.Successor[0]
+		return false, sendTo
 	}
 
 	flag, _ := strconv.ParseBool(reply.Value)
@@ -103,17 +95,27 @@ func (chord *ChordNode) find_succesor(sendTo *Node, id string) (bool, *Node) {
 }
 
 func (chord *ChordNode) put_all() {
-	address := chord.Successor[0].Address
-	_, err := chord.call(address, "ChordNode.Put_all", RpcArgs{"", "", nil, nil, chord.Bucket})
-	if err != nil {
-		if debugging {
-			fmt.Println("Failure to hand over keys! <", err)
-			return
+	if len(chord.Bucket) == 0 {
+		fmt.Println("No key/s to hand over")
+		return
+	}
+	for i := 0; i < m; i++ {
+		if chord.Successor[i].Id == chord.LocalNode.Id {
+			continue
 		}
+		address := chord.Successor[i].Address
+		_, err := chord.call(address, "ChordNode.Put_all", RpcArgs{"", "", nil, nil, chord.Bucket})
+		if err != nil {
+			fmt.Printf("Sending keys to succesor[%d] failed\n", i)
+			continue
+		}
+		for _, value := range chord.Bucket {
+			postSender(address, value)
+		}
+		fmt.Printf("Sent keys to succesor[%d] ---> %+v\n", i, chord.Successor[i])
+		return
 	}
-	for _, value := range chord.Bucket {
-		postSender(address, value) // Send stored files to new host
-	}
+	fmt.Println("Failed to hand over keys to successor/s")
 }
 
 func (chord *ChordNode) get_all() map[string]string {

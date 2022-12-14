@@ -42,7 +42,7 @@ func (chord *ChordNode) DeleteFile(filePath string) *Node {
 	chord.call(sendTo.Address, "ChordNode.Delete", RpcArgs{fileKey, "",
 		nil, nil, nil})
 
-	fmt.Printf("Deleted File From Node: %+v\n", sendTo)
+	fmt.Printf("Deleted File From Node: %+v\n", *sendTo)
 	return sendTo
 }
 
