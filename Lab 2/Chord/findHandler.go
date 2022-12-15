@@ -5,13 +5,16 @@ import "fmt"
 /* Finding Successor Functions */
 
 func (chord *ChordNode) find_successor(id string) (bool, *Node) {
-	for {
-		if between1(chord.LocalNode.Id, id, chord.Successor[0].Id, true) {
-			return true, chord.Successor[0]
-		} else {
-			return chord.closest_preceding_node(id)
-			//return false, chord.Successor[0]
-		}
+	if chord.Predecessor != nil &&
+		between1(chord.Predecessor.Id, id, chord.LocalNode.Id, true) {
+		return true, chord.LocalNode
+	}
+
+	if between1(chord.LocalNode.Id, id, chord.Successor[0].Id, true) {
+		return true, chord.Successor[0]
+	} else {
+		return chord.closest_preceding_node(id)
+		//return false, chord.Successor[0]
 	}
 }
 
@@ -23,7 +26,7 @@ func (chord *ChordNode) closest_preceding_node(id string) (bool, *Node) {
 		}
 	}
 
-	return true, chord.LocalNode
+	return false, chord.LocalNode
 }
 
 // Search iteratively, if not found asking the received node next

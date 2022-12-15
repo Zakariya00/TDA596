@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strings"
+	"time"
 )
 
 /* User Interface and Input Functions */
@@ -61,12 +62,8 @@ func (chord *ChordNode) handleKeyBoard() {
 		fmt.Println("Enter the key you wish to find the successor for:")
 		var key string
 		fmt.Scan(&key)
-		if len(key) == 48 {
-			has := chord.find(chord.LocalNode, key)
-			fmt.Printf("found: %+v\n", *has)
-		} else {
-			fmt.Println("Not A Valid Key")
-		}
+		has := chord.find(chord.LocalNode, key)
+		fmt.Printf("found: %+v\n", *has)
 
 	case "whoami":
 		fmt.Printf("Node: %+v\n", *chord.LocalNode)
@@ -82,10 +79,16 @@ func (chord *ChordNode) handleKeyBoard() {
 			go postSender(address, file)
 		}
 
+	case "sysinfo":
+		fmt.Println("Succession List Size:", m)
+		fmt.Println("Stabilize delay time (ms):", stabilizationDelay*time.Millisecond)
+		fmt.Println("Fix_fingers delay time (ms):", fixFingersDelay*time.Millisecond)
+		fmt.Println("check_predecessor delay time (ms):", predeccesorCheckDelay*time.Millisecond)
+
 	default:
 		fmt.Println("\nCommand Is Not <Supported>/<Faulty Input>")
 		fmt.Printf("Supported Commands are:\n- LookUp <file name>\n- StoreFile <file path>\n" +
 			"- PrintState <>\n- Deletefile <file name>\n- Quit <>\n\nFor Debugging:\n- Ping <address>\n- Find <key>\n" +
-			"- Hash <string>\n- Whoami <>\n- sendtest <file name> <address>\n- Debug <>\n")
+			"- Hash <string>\n- Whoami <>\n- Sysinfo <>\n- sendtest <file name> <address>\n- Debug <>\n")
 	}
 }

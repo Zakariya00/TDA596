@@ -118,7 +118,7 @@ func (chord *ChordNode) put_all() {
 		for _, value := range chord.Bucket {
 			postSender(address, value)
 		}
-		fmt.Printf("Sent keys to succesor[%d] ---> %+v\n", i, chord.Successor[i])
+		fmt.Printf("Sent keys to succesor[%d] ---> %+v\n", i, *chord.Successor[i])
 		return
 	}
 	fmt.Println("Failed to hand over keys to successor/s")
