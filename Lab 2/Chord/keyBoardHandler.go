@@ -17,19 +17,19 @@ func (chord *ChordNode) handleKeyBoard() {
 		fmt.Println("Input the file you want to search for")
 		var file string
 		fmt.Scan(&file)
-		chord.LookUp(file)
+		chord.lookUp(file)
 
 	case "storefile":
 		fmt.Println("Input the file you want to store")
 		var file string
 		fmt.Scan(&file)
-		chord.StoreFile(file)
+		chord.storeFile(file)
 
 	case "deletefile":
 		fmt.Println("Enter the file you wish to delete")
 		var file string
 		fmt.Scan(&file)
-		chord.DeleteFile(file)
+		chord.deleteFile(file)
 
 	case "ping":
 		fmt.Println("Enter The Receiving Address For The Ping <IP:Port>: ")
@@ -43,13 +43,13 @@ func (chord *ChordNode) handleKeyBoard() {
 		fmt.Println(reply.Value)
 
 	case "printstate":
-		chord.PrintState()
+		chord.printState()
 
 	case "quit":
-		chord.Quit()
+		chord.quit()
 
 	case "debug":
-		chord.Debug()
+		chord.debug()
 
 	case "hash":
 		fmt.Println("Enter the string you wish to hash:")

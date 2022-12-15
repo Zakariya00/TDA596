@@ -6,7 +6,7 @@ import (
 
 /* Ring Stabilizing Functions */
 
-var next = 0
+var next = 0 // starting value, set once
 
 // notified "newPredecessor" thinks it might be our predecessor.
 func (chord *ChordNode) notified(newPredecessor *Node) {

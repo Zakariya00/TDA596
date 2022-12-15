@@ -114,7 +114,7 @@ func checkMethod(w http.ResponseWriter, r *http.Request) bool {
 
 // Serves get requests by forwarding them to the Main server and sends back response
 func proxyHandler(w http.ResponseWriter, r *http.Request) {
-	forwardtoNode := cNode.LookUp(path.Base(r.URL.Path)).Address
+	forwardtoNode := cNode.lookUp(path.Base(r.URL.Path)).Address
 	if forwardtoNode == cNode.LocalNode.Address {
 		http.ServeFile(w, r, "./"+r.URL.String())
 		return
