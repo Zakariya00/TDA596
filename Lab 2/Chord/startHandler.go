@@ -6,7 +6,7 @@ import (
 
 /* Ring Create/Join Functions*/
 
-// Functions for Creating or Joining rings
+// create  a new chord ring
 func (chord *ChordNode) create() {
 	fmt.Println("<Create Chord Ring>")
 	chord.Predecessor = nil
@@ -28,6 +28,7 @@ func (chord *ChordNode) create() {
 	chord.backGroundProcesses()
 }
 
+// join an existing chord ring
 func (chord *ChordNode) join(hostNode *Node) {
 	fmt.Println("<Join Chord Ring>")
 	chord.Predecessor = nil

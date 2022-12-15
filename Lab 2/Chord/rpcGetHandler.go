@@ -7,12 +7,14 @@ import (
 
 /* RPC Receiving Handler Functions */
 
+// Ping Connectivity check, for testing
 func (chord *ChordNode) Ping(args RpcArgs, reply *RpcArgs) error {
 	fmt.Println("<Ping>:", args.Value)
 	*reply = RpcArgs{"", "Ping Back", nil, nil, nil}
 	return nil
 }
 
+// Get Check for requested key, send back the value
 func (chord *ChordNode) Get(args RpcArgs, reply *RpcArgs) error {
 	if debugging {
 		fmt.Println("<Get>")
@@ -26,6 +28,7 @@ func (chord *ChordNode) Get(args RpcArgs, reply *RpcArgs) error {
 	return nil
 }
 
+// Put the received key & value in bucket
 func (chord *ChordNode) Put(args RpcArgs, reply *RpcArgs) error {
 	if debugging {
 		fmt.Println("<Put>")
@@ -38,6 +41,7 @@ func (chord *ChordNode) Put(args RpcArgs, reply *RpcArgs) error {
 	return nil
 }
 
+// Delete the received key & value from bucket
 func (chord *ChordNode) Delete(args RpcArgs, reply *RpcArgs) error {
 	if debugging {
 		fmt.Println("<Delete>")
@@ -50,6 +54,7 @@ func (chord *ChordNode) Delete(args RpcArgs, reply *RpcArgs) error {
 	return nil
 }
 
+// SendPredecessor send back predecessor
 func (chord *ChordNode) SendPredecessor(args RpcArgs, reply *RpcArgs) error {
 	if debugging {
 		fmt.Println("<Sending Predecessor>")
@@ -58,6 +63,7 @@ func (chord *ChordNode) SendPredecessor(args RpcArgs, reply *RpcArgs) error {
 	return nil
 }
 
+// SendSuccessors send back successors
 func (chord *ChordNode) SendSuccessors(args RpcArgs, reply *RpcArgs) error {
 	if debugging {
 		fmt.Println("<Sending Successors>")
@@ -66,15 +72,17 @@ func (chord *ChordNode) SendSuccessors(args RpcArgs, reply *RpcArgs) error {
 	return nil
 }
 
+// Notified check then/if set new predecessor
 func (chord *ChordNode) Notified(args RpcArgs, reply *RpcArgs) error {
 	if debugging {
 		fmt.Println("<Notifying Node>")
 	}
-	chord.notifed(args.RNode)
+	chord.notified(args.RNode)
 	*reply = RpcArgs{"", "Node Notified", nil, nil, nil}
 	return nil
 }
 
+// FindingSuccesor search for the successor to received key, return results
 func (chord *ChordNode) FindingSuccesor(args RpcArgs, reply *RpcArgs) error {
 	if debugging {
 		fmt.Println("<Finding Succesor>")
@@ -84,6 +92,7 @@ func (chord *ChordNode) FindingSuccesor(args RpcArgs, reply *RpcArgs) error {
 	return nil
 }
 
+// Put_all put all received keys in your bucket
 func (chord *ChordNode) Put_all(args RpcArgs, reply *RpcArgs) error {
 	if debugging {
 		fmt.Println("<Putting All>")
@@ -96,6 +105,7 @@ func (chord *ChordNode) Put_all(args RpcArgs, reply *RpcArgs) error {
 	return nil
 }
 
+// Get_all send back keys that belong to your new predecessor
 func (chord *ChordNode) Get_all(args RpcArgs, reply *RpcArgs) error {
 	if debugging {
 		fmt.Println("<Getting All>")
@@ -114,6 +124,7 @@ func (chord *ChordNode) Get_all(args RpcArgs, reply *RpcArgs) error {
 	return nil
 }
 
+// Alive send back reply to show node is still running
 func (chord *ChordNode) Alive(args RpcArgs, reply *RpcArgs) error {
 	if debugging {
 		fmt.Println(args.Value)

@@ -8,6 +8,7 @@ import (
 
 /* RPC Calling Functions */
 
+// call helper Function, takes care of dialing and calling client and returns result
 func (chord *ChordNode) call(address string, method string, request RpcArgs) (RpcArgs, error) {
 	var reply RpcArgs
 	client, err := rpc.DialHTTP("tcp", address)
@@ -30,6 +31,7 @@ func (chord *ChordNode) call(address string, method string, request RpcArgs) (Rp
 	return reply, nil
 }
 
+// getPredecessor Call to ask for predecessor
 func (chord *ChordNode) getPredecessor() (*Node, error) {
 	address := chord.Successor[0].Address
 	response, err := chord.call(address, "ChordNode.SendPredecessor", RpcArgs{"0", "", nil, nil, nil})
@@ -42,6 +44,7 @@ func (chord *ChordNode) getPredecessor() (*Node, error) {
 	return response.RNode, nil
 }
 
+// getSuccessors Call to ask for successors
 func (chord *ChordNode) getSuccessors() ([]*Node, error) {
 	address := chord.Successor[0].Address
 	response, err := chord.call(address, "ChordNode.SendSuccessors", RpcArgs{})
@@ -67,6 +70,7 @@ func (chord *ChordNode) getSuccessors() ([]*Node, error) {
 	return response.RNodes, nil
 }
 
+// notify successor
 func (chord *ChordNode) notify() {
 	address := chord.Successor[0].Address
 	_, err := chord.call(address, "ChordNode.Notified", RpcArgs{"", "Notifying", chord.LocalNode, nil, nil})
@@ -78,6 +82,7 @@ func (chord *ChordNode) notify() {
 	}
 }
 
+// find_succesor Call to "find" successor
 func (chord *ChordNode) find_succesor(sendTo *Node, id string) (bool, *Node) {
 	address := sendTo.Address
 	reply, err := chord.call(address, "ChordNode.FindingSuccesor", RpcArgs{id, "Find The Successor", nil, nil, nil})
@@ -94,6 +99,7 @@ func (chord *ChordNode) find_succesor(sendTo *Node, id string) (bool, *Node) {
 	return flag, node
 }
 
+// put_all Call to hand over keys before shutdown
 func (chord *ChordNode) put_all() {
 	if len(chord.Bucket) == 0 {
 		fmt.Println("No key/s to hand over")
@@ -118,6 +124,7 @@ func (chord *ChordNode) put_all() {
 	fmt.Println("Failed to hand over keys to successor/s")
 }
 
+// get_all Call to ask successor for your keys
 func (chord *ChordNode) get_all() map[string]string {
 	address := chord.Successor[0].Address
 	reply, err := chord.call(address, "ChordNode.Get_all", RpcArgs{"", "GET", chord.LocalNode, nil, nil})
@@ -129,6 +136,7 @@ func (chord *ChordNode) get_all() map[string]string {
 	return reply.Keys
 }
 
+// isAlive Call to check if predecessor is still alive
 func (chord *ChordNode) isAlive() bool {
 	address := chord.Predecessor.Address
 	reply, err := chord.call(address, "ChordNode.Alive", RpcArgs{"", "Alive?", nil, nil, nil})

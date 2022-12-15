@@ -61,11 +61,11 @@ func (chord *ChordNode) handleKeyBoard() {
 		fmt.Println("Enter the key you wish to find the successor for:")
 		var key string
 		fmt.Scan(&key)
-		if len([]rune(key)) == 40 {
+		if len(key) == 48 {
 			has := chord.find(chord.LocalNode, key)
 			fmt.Printf("found: %+v\n", *has)
 		} else {
-			fmt.Printf("Not A Proper Key")
+			fmt.Println("Not A Valid Key")
 		}
 
 	case "whoami":

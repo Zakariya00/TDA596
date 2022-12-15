@@ -8,7 +8,8 @@ import (
 
 var next = 0
 
-func (chord *ChordNode) notifed(newPredecessor *Node) {
+// notified "newPredecessor" thinks it might be our predecessor.
+func (chord *ChordNode) notified(newPredecessor *Node) {
 	if debugging {
 		fmt.Println("predecessor:", newPredecessor)
 	}
@@ -23,6 +24,7 @@ func (chord *ChordNode) notifed(newPredecessor *Node) {
 	}
 }
 
+// stabilize verifies nodes immediate successor, and tells the successor about the node
 func (chord *ChordNode) stabilize() {
 	if debugging {
 		fmt.Println("<Stabilizing>")
@@ -64,6 +66,7 @@ func (chord *ChordNode) stabilize() {
 
 }
 
+// check_predecessor checks whether predecessor has failed
 func (chord *ChordNode) check_predecessor() {
 	if chord.Predecessor != nil {
 		if !chord.isAlive() {
@@ -72,6 +75,7 @@ func (chord *ChordNode) check_predecessor() {
 	}
 }
 
+// fix_fingers refreshes finger table entries, next stores the index of the next finger to fix
 func (chord *ChordNode) fix_fingers() {
 	node := chord.find(chord.LocalNode, chord.FingerTable[next].Start)
 	chord.FingerTable[next].Successor = node

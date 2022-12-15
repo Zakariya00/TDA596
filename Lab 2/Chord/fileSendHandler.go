@@ -10,7 +10,7 @@ import (
 	"path"
 )
 
-/* Function for sending files to nodes through http */
+// postSender sends files to nodes through http
 func postSender(address string, filePath string) {
 	uri := "http://" + address
 	fileName := path.Base(filePath)

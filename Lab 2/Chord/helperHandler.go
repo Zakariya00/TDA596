@@ -9,6 +9,7 @@ import (
 
 /* Helper Functions */
 
+// Finds local ip address
 func getLocalAddress() string {
 	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
@@ -21,6 +22,7 @@ func getLocalAddress() string {
 	return localAddr.IP.String()
 }
 
+// Checks if file exists locally
 func fileExists(fileName string) bool {
 	if _, err := os.Stat(fileName); err == nil {
 		return true

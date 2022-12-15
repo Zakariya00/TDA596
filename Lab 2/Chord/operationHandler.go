@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 /* Supported User Operations Functions */
 
 var debugging bool
 
+// LookUp look up file and return the node it belongs to
 func (chord *ChordNode) LookUp(fileName string) *Node {
 	fileKey := hash(fileName).String()
 	hasIt := chord.find(chord.LocalNode, fileKey) //
@@ -21,6 +23,7 @@ func (chord *ChordNode) LookUp(fileName string) *Node {
 	return hasIt
 }
 
+// StoreFile send local file to the node it belongs to for storage
 func (chord *ChordNode) StoreFile(filePath string) *Node {
 	if !fileExists(filePath) {
 		return nil
@@ -36,6 +39,7 @@ func (chord *ChordNode) StoreFile(filePath string) *Node {
 	return sendTo
 }
 
+// DeleteFile delete the file from the node it should be at
 func (chord *ChordNode) DeleteFile(filePath string) *Node {
 	fileKey := hash(filePath).String()
 	sendTo := chord.LookUp(filePath)
@@ -46,7 +50,10 @@ func (chord *ChordNode) DeleteFile(filePath string) *Node {
 	return sendTo
 }
 
+// PrintState print out the current state of local, successors and Fingertable nodes
 func (chord *ChordNode) PrintState() {
+	hours, mins, secs := time.Now().Clock()
+	fmt.Printf("--------------- <%d:%d:%d> ---------------\n", hours, mins, secs)
 	if chord.Predecessor != nil {
 		fmt.Printf("Predecessor: %+v\n", *chord.Predecessor)
 	} else {
@@ -69,6 +76,7 @@ func (chord *ChordNode) PrintState() {
 
 }
 
+// Quit print final state and send any keys to successor before exiting the program
 func (chord *ChordNode) Quit() {
 	fmt.Println("Exit Protocol Engaged: <Printing Final State>")
 	chord.PrintState()

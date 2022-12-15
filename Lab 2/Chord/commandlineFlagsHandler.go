@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+/* Function for handling commandline flag args */
+
 func commandlineFlags() {
 	ip1 := flag.String("a", "", "The IP address that the Chord client will bind to")
 	port1 := flag.String("p", "", "The port that the Chord client will bind to and listen on")
@@ -31,13 +33,13 @@ func commandlineFlags() {
 	}
 
 	debugging = *debuggingOn
-	if *delay1 > 60000 || *delay1 < 0 {
+	if *delay1 > 60000 || *delay1 < 1 {
 		*delay1 = 30000
 	}
-	if *delay2 > 60000 || *delay2 < 0 {
+	if *delay2 > 60000 || *delay2 < 1 {
 		*delay2 = 10000
 	}
-	if *delay3 > 60000 || *delay3 < 0 {
+	if *delay3 > 60000 || *delay3 < 1 {
 		*delay3 = 40000
 	}
 	if *nbrSuccesors > 32 || *nbrSuccesors < 1 {
@@ -52,7 +54,7 @@ func commandlineFlags() {
 	port := *port1
 	address := ip + ":" + port
 	id := hash(address).String()
-	if (*idOverwrite != "") && (len([]rune(*idOverwrite)) == 40) {
+	if (*idOverwrite != "") && (len(*idOverwrite) == 48) {
 		id = *idOverwrite
 	}
 	cNode.LocalNode = &Node{id, ip, port, address}

@@ -23,10 +23,10 @@ func (chord *ChordNode) closest_preceding_node(id string) (bool, *Node) {
 		}
 	}
 
-	//return false, chord.Successor[0]
 	return true, chord.LocalNode
 }
 
+// Search iteratively, if not found asking the received node next
 func (chord *ChordNode) find(startNode *Node, id string) *Node {
 	maxSteps := keySize - 1
 	var n = startNode
@@ -40,7 +40,6 @@ func (chord *ChordNode) find(startNode *Node, id string) *Node {
 		}
 		n = succesor
 	}
-
 	if debugging {
 		fmt.Println("Couldnt find Succesor, returning start node")
 	}

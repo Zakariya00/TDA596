@@ -16,7 +16,7 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// Main handler for http requests to server, with sync mechanism
+// serverHandler Main handler for http requests to server, with sync mechanism
 func serverHandler(w http.ResponseWriter, r *http.Request) {
 
 	if !checkMethod(w, r) {
@@ -45,7 +45,7 @@ func getHandler(w http.ResponseWriter, r *http.Request, fType string) {
 	proxyHandler(w, r)
 }
 
-// Handles POST requests
+// postHandler Handles POST requests
 func postHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse our multipart form, 10 << 20 specifies a maximum
 	// upload of 10 MB files.

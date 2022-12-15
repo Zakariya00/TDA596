@@ -12,12 +12,14 @@ const keySize = sha1.Size * 8
 var two = big.NewInt(2)
 var hashMod = new(big.Int).Exp(big.NewInt(2), big.NewInt(keySize), nil)
 
+// hash get a sha1 hash value
 func hash(elt string) *big.Int {
 	hasher := sha1.New()
 	hasher.Write([]byte(elt))
 	return new(big.Int).SetBytes(hasher.Sum(nil))
 }
 
+// jump  computes the address of a position across the ring that should be pointed to by the given finger table entry
 func jump(address string, fingerentry int) *big.Int {
 	n := hash(address)
 	fingerentryminus1 := big.NewInt(int64(fingerentry) - 1)
@@ -35,6 +37,9 @@ func between(start, elt, end *big.Int, inclusive bool) bool {
 	}
 }
 
+// between1 returns true if elt is between start and end on the ring, accounting for the boundary where the ring
+// loops back on itself. If inclusive is true, it tests if elt is in (start,end],
+// otherwise it tests for (start,end).
 func between1(start, elt, end string, inclusive bool) bool {
 	bStart, _ := new(big.Int).SetString(start, 10)
 	bElt, _ := new(big.Int).SetString(elt, 10)

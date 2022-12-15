@@ -4,6 +4,7 @@ package main
 
 var m int
 
+// Node representing a simple node
 type Node struct {
 	Id      string
 	Ip      string
@@ -11,11 +12,13 @@ type Node struct {
 	Address string
 }
 
+// Entry representing an entry in the FingerTable
 type Entry struct {
 	Start     string
 	Successor *Node
 }
 
+// ChordNode representing a chord node
 type ChordNode struct {
 	LocalNode   *Node
 	FingerTable []*Entry
@@ -25,6 +28,7 @@ type ChordNode struct {
 	Bucket map[string]string
 }
 
+// RpcArgs for use as request and response between rpc caller and receiver
 type RpcArgs struct {
 	Key    string
 	Value  string
