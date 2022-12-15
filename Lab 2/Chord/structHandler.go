@@ -30,9 +30,9 @@ type ChordNode struct {
 
 // RpcArgs for use as request and response between rpc caller and receiver
 type RpcArgs struct {
-	Key    string
-	Value  string
-	RNode  *Node
-	RNodes []*Node
-	Keys   map[string]string
+	Key    string            // Key for passing/receiving key arg, ex key, Id
+	Value  string            // Value for passing/receiving value/msg arg, ex Bucket[key]
+	RNode  *Node             // RNode for passing/receiving node arg, ex LocalNode, predecessor or Successor[x]
+	RNodes []*Node           // RNodes for passing/receiving nodes slice arg, ex Successor slice
+	Keys   map[string]string // Keys for passing/receiving maps, ex Bucket
 }
