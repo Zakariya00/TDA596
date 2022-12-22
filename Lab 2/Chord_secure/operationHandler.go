@@ -70,6 +70,11 @@ func (chord *ChordNode) printState() {
 		fmt.Printf("K: <" + key + "> -> " + "V: <" + value + ">\n")
 	}
 
+	fmt.Println("Backups <key,value> pairs:")
+	for key, value := range chord.Backups {
+		fmt.Printf("K: <" + key + "> -> " + "V: <" + value + ">\n")
+	}
+
 	for i := 0; i < keySize; i++ {
 		fmt.Printf("FingerTable[%s]: %+v\n", chord.FingerTable[i].Start, *chord.FingerTable[i].Successor)
 	}

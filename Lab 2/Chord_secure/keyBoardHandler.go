@@ -79,16 +79,23 @@ func (chord *ChordNode) handleKeyBoard() {
 			go postSender(address, file)
 		}
 
+	case "save":
+		chord.backupFiles()
+
+	case "getbackups":
+		chord.movBackups()
+
 	case "sysinfo":
 		fmt.Println("Succession List Size:", m)
 		fmt.Println("Stabilize delay time (ms):", stabilizationDelay*time.Millisecond)
 		fmt.Println("Fix_fingers delay time (ms):", fixFingersDelay*time.Millisecond)
 		fmt.Println("check_predecessor delay time (ms):", predeccesorCheckDelay*time.Millisecond)
+		fmt.Println("backupHandler delay time (min):", backupTimeDelay*time.Minute)
 
 	default:
 		fmt.Println("\nCommand Is Not <Supported>/<Faulty Input>")
 		fmt.Printf("Supported Commands are:\n- LookUp <file name>\n- StoreFile <file path>\n" +
 			"- PrintState <>\n- Deletefile <file name>\n- Quit <>\n\nFor Debugging:\n- Ping <address>\n- Find <key>\n" +
-			"- Hash <string>\n- Whoami <>\n- Sysinfo <>\n- sendtest <file name> <address>\n- Debug <>\n")
+			"- Hash <string>\n- Whoami <>\n- Sysinfo <>\n- sendtest <file name> <address>\n- Save <>\n- GetBackUps <>\n- Debug <>\n")
 	}
 }

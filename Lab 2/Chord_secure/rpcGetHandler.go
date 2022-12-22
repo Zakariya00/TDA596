@@ -132,3 +132,10 @@ func (chord *ChordNode) Alive(args RpcArgs, reply *RpcArgs) error {
 	*reply = RpcArgs{args.Value, "Yeah Im alive", nil, nil, nil}
 	return nil
 }
+
+// GetBackUp receives and stores backups
+func (chord *ChordNode) GetBackUp(args RpcArgs, reply *RpcArgs) error {
+	chord.Backups[args.Key] = args.Value
+	*reply = RpcArgs{"", "File BackedUp", nil, nil, nil}
+	return nil
+}

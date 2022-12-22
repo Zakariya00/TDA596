@@ -101,7 +101,7 @@ func (chord *ChordNode) find_succesor(sendTo *Node, id string) (bool, *Node) {
 
 // put_all Call to hand over keys before shutdown
 func (chord *ChordNode) put_all() {
-	if len(chord.Bucket) == 0 {
+	if len(chord.Bucket) == 0 && len(chord.Backups) == 0 {
 		fmt.Println("No key/s to hand over")
 		return
 	}
@@ -115,9 +115,14 @@ func (chord *ChordNode) put_all() {
 			fmt.Printf("Sending keys to succesor[%d] failed\n", i)
 			continue
 		}
+
 		for _, value := range chord.Bucket {
 			postSender(address, value)
 		}
+		for key, value := range chord.Backups {
+			chord.sendBackup(key, value)
+		}
+
 		fmt.Printf("Sent keys to succesor[%d] ---> %+v\n", i, *chord.Successor[i])
 		return
 	}
@@ -150,4 +155,21 @@ func (chord *ChordNode) isAlive() bool {
 		fmt.Println(reply.Key + ": " + reply.Value)
 	}
 	return true
+}
+
+// sendBackup sends backup to successor
+func (chord *ChordNode) sendBackup(key, value string) error {
+	address := chord.Successor[0].Address
+	reply, err := chord.call(address, "ChordNode.GetBackUp", RpcArgs{key, value, nil, nil, nil})
+	if err != nil {
+		if debugging {
+			fmt.Println("Failed to send backup!!:", err)
+		}
+		return err
+	}
+	if debugging {
+		fmt.Println(reply.Value)
+	}
+	postSender(address, value)
+	return nil
 }

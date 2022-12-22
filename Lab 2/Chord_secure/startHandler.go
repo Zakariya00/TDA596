@@ -23,6 +23,7 @@ func (chord *ChordNode) create() {
 		chord.Successor[i] = chord.LocalNode
 	}
 	chord.Bucket = make(map[string]string)
+	chord.Backups = make(map[string]string)
 
 	/* Activate Background Processes*/
 	chord.backGroundProcesses()
@@ -43,6 +44,7 @@ func (chord *ChordNode) join(hostNode *Node) {
 		chord.Successor[0] = found
 	}
 
+	chord.Backups = make(map[string]string)
 	chord.Bucket = chord.get_all()
 	chord.FingerTable = new([keySize + 2]*Entry)[1:(keySize + 1)]
 	for i := 0; i < keySize; i++ {

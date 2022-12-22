@@ -89,11 +89,17 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 	belongsTo := cNode.find(cNode.LocalNode, fileKey)
 
 	_, ok := cNode.Bucket[fileKey]
+	_, ok1 := cNode.Backups[fileKey]
 	if belongsTo.Id == cNode.LocalNode.Id || ok {
 		fmt.Println("<Received file>")
 		cNode.Bucket[fileKey] = handler.Filename
 		return
+	} else if ok1 {
+		fmt.Println("Received file backup")
+		cNode.Backups[fileKey] = handler.Filename
+		return
 	}
+
 	fmt.Println("<Received then sent file>")
 	postSender(belongsTo.Address, handler.Filename)
 	/**/

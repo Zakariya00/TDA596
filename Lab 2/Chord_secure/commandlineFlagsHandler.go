@@ -16,6 +16,7 @@ func commandlineFlags() {
 	delay1 := flag.Int("ts", 30000, "The time in milliseconds between invocations of ‘stabilize")
 	delay2 := flag.Int("tff", 10000, "The time in milliseconds between invocations of ‘fix fingers’")
 	delay3 := flag.Int("tcp", 40000, "The time in milliseconds between invocations of ‘check predecessor")
+	delay4 := flag.Int("s", 1, "The time in minutes between invocations of ‘backupHandler")
 	nbrSuccesors := flag.Int("r", 3, "The number of successors maintained by the Chord client")
 	idOverwrite := flag.String("i", "", "The identifier (ID) assigned to the Chord client which will"+
 		" override the ID computed by the SHA1 sum of the client’s IP address and port number")
@@ -42,12 +43,16 @@ func commandlineFlags() {
 	if *delay3 > 60000 || *delay3 < 1 {
 		*delay3 = 40000
 	}
+	if *delay4 > 10080 || *delay4 < 1 {
+		*delay4 = 1
+	}
 	if *nbrSuccesors > 32 || *nbrSuccesors < 1 {
 		*nbrSuccesors = 3
 	}
 	stabilizationDelay = time.Duration(*delay1)
 	fixFingersDelay = time.Duration(*delay2)
 	predeccesorCheckDelay = time.Duration(*delay3)
+	backupTimeDelay = time.Duration(*delay4)
 	m = *nbrSuccesors
 
 	ip := *ip1

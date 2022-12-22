@@ -25,7 +25,8 @@ type ChordNode struct {
 	Successor   []*Node
 	Predecessor *Node
 
-	Bucket map[string]string
+	Bucket  map[string]string
+	Backups map[string]string
 }
 
 // RpcArgs for use as request and response between rpc caller and receiver

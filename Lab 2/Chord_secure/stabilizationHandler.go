@@ -104,3 +104,32 @@ func (chord *ChordNode) fix_fingers() {
 		break
 	}
 }
+
+// backupFiles backs up all node files. sendBackup handles the sending
+func (chord ChordNode) backupFiles() {
+	if len(chord.Bucket) == 0 ||
+		chord.Successor[0].Id == chord.LocalNode.Id {
+		return
+	}
+	for key, value := range chord.Bucket {
+		belongsTo := cNode.find(cNode.LocalNode, key)
+		if belongsTo.Id == chord.LocalNode.Id {
+			chord.sendBackup(key, value)
+		}
+
+	}
+}
+
+// movBackups moves backed up files to local node
+func (chord ChordNode) movBackups() {
+	if len(chord.Backups) == 0 {
+		return
+	}
+	for key, value := range chord.Backups {
+		belongsTo := cNode.find(cNode.LocalNode, key)
+		if belongsTo.Id == chord.LocalNode.Id {
+			delete(chord.Backups, key)
+			chord.Bucket[key] = value
+		}
+	}
+}
