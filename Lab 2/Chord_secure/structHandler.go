@@ -37,3 +37,5 @@ type RpcArgs struct {
 	RNodes []*Node           // RNodes for passing/receiving nodes slice arg, ex Successor slice
 	Keys   map[string]string // Keys for passing/receiving maps, ex Bucket
 }
+
+type handler struct{}

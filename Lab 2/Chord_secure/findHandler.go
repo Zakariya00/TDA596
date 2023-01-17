@@ -29,7 +29,7 @@ func (chord *ChordNode) closest_preceding_node(id string) (bool, *Node) {
 	return false, chord.LocalNode
 }
 
-// Search iteratively, if not found asking the received node next
+// find searches iteratively, if not found asking the received node next
 func (chord *ChordNode) find(startNode *Node, id string) *Node {
 	maxSteps := keySize - 1
 	var n = startNode

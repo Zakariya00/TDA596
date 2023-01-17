@@ -18,10 +18,19 @@ RUN go build -o /Chord
 
 # Make sure to expose the port the Chord Node is using
 EXPOSE 8080
+EXPOSE 8081
+
 EXPOSE 1234
-EXPOSE 9090
 EXPOSE 1235
+
+EXPOSE 9090
+EXPOSE 9091
+
+EXPOSE 1245
+EXPOSE 1246
+
 EXPOSE 5050
+EXPOSE 5051
 
 # Run the app binary when we run the container
 ENTRYPOINT ["/Chord"]

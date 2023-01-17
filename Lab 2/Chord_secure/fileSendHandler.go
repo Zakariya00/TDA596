@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
-	"net/http"
+	"net/http/httputil"
 	"os"
 	"path"
 )
@@ -24,7 +24,13 @@ func postSender(address string, filePath string) {
 }
 
 func postSender1(address string, filePath string) error {
-	uri := "http://" + address
+	client, err := httpsClient("secure_chord.crt")
+	if err != nil {
+		fmt.Println("Error on setting https client;", err)
+		return err
+	}
+	newAddress, _ := setHttpsPort(address)
+	uri := "https://" + newAddress
 	fileName := path.Base(filePath)
 
 	file, err := os.Open(filePath)
@@ -51,18 +57,18 @@ func postSender1(address string, filePath string) error {
 	}
 	writer.Close()
 
-	_, err = http.Post(uri, writer.FormDataContentType(), body) //
+	//_, err = http.Post(uri, writer.FormDataContentType(), body) //
+	response, err := client.Post(uri, writer.FormDataContentType(), body) //d
 	if err != nil {
 		fmt.Println("Failed to send Post:", err)
 		return err
 	}
-	/*
-		res, err := httputil.DumpResponse(response, true)
-		if err != nil {
-			return
-		}
-		fmt.Print(string(res) + "\n")
-	*/
+
+	res, err := httputil.DumpResponse(response, true)
+	if err != nil {
+		return err
+	}
+	fmt.Print(string(res) + "\n")
 
 	fmt.Println("<Sent file>")
 	return nil

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/httputil"
 	"os"
 	"path"
 	"path/filepath"
@@ -22,6 +23,13 @@ func serverHandler(w http.ResponseWriter, r *http.Request) {
 	if !checkMethod(w, r) {
 		return
 	}
+
+	res, err := httputil.DumpRequest(r, true)
+	if err != nil {
+		return
+	}
+	fmt.Print(string(res) + "\n")
+
 	if r.Method == "POST" {
 		postHandler(w, r)
 	} else {
@@ -122,12 +130,18 @@ func checkMethod(w http.ResponseWriter, r *http.Request) bool {
 func proxyHandler(w http.ResponseWriter, r *http.Request) {
 	forwardtoNode := cNode.lookUp(path.Base(r.URL.Path)).Address
 	if forwardtoNode == cNode.LocalNode.Address {
-		http.ServeFile(w, r, "./"+r.URL.String())
+		http.ServeFile(w, r, "/"+r.URL.String())
 		return
 	}
 
-	forwardToServerURL := "http://" + forwardtoNode
-	resp, err := http.Get(forwardToServerURL + r.URL.String())
+	forwardtoNodeAddress, _ := setHttpsPort(forwardtoNode)
+	forwardToServerURL := "https://" + forwardtoNodeAddress
+	client, err := httpsClient("secure_chord.crt")
+	if err != nil {
+		http.Error(w, "Error in setting https client for main server: "+err.Error(), 500)
+		return
+	}
+	resp, err := client.Get(forwardToServerURL + "/" + r.URL.String())
 	if err != nil {
 		http.Error(w, "Failure in forwarding request: "+err.Error(), 400)
 		return
