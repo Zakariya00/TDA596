@@ -6,6 +6,12 @@ WORKDIR /app
 
 # Copy over all go config (go.mod, go.sum etc.)
 COPY go.* ./
+COPY client.crt .
+COPY client.key .
+COPY secure_chord.crt .
+COPY secure_chord.csr .
+COPY secure_chord.key .
+
 
 # Install any required modules
 RUN go mod download
