@@ -154,7 +154,7 @@ func MakeCoordinator(files []string, nReduce int) *Coordinator {
 
 	// Initialize Reduce Tasks
 	for i := 0; i < nReduce; i++ {
-		c.mTasks[i] = Task{index: i, state: FREE, taskT: REDUCE}
+		c.rTasks[i] = Task{index: i, state: FREE, taskT: REDUCE}
 	}
 
 	go c.timeoutHandler()
