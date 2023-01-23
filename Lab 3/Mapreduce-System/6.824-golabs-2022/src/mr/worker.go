@@ -1,6 +1,7 @@
 package mr
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -37,14 +38,18 @@ func Worker(mapf func(string, string) []KeyValue,
 	reducef func(string, []string) string) {
 
 	// Your worker implementation here.
-	for {
+	var stop = false
+	for !stop {
 		task := requestTask()
 		switch task.Type {
+
 		case MAP:
 			mapHandler(task, mapf)
+			_, stop = reportTask(task)
 
 		case REDUCE:
 			reduceHandler(task, reducef)
+			_, stop = reportTask(task)
 
 		case SUSPEND:
 			time.Sleep(1000 * time.Millisecond)
@@ -55,22 +60,50 @@ func Worker(mapf func(string, string) []KeyValue,
 
 // Handle Map Task
 func mapHandler(task Treply, mapf func(string, string) []KeyValue) {
-	// Open & read file content
+	// Open file
 	file, err := os.Open(task.File)
 	if err != nil {
 		log.Fatal("File open failure <%s>", err)
 	}
 	defer file.Close()
 
+	// Read file content
 	content, err := ioutil.ReadAll(file)
 	if err != nil {
 		log.Fatal("File read failure <%s>", err)
 	}
 
 	// Map function
-	intermediate := mapf(task.File, string(content))
-	rFiles := make(map[int][]KeyValue)
+	kva := mapf(task.File, string(content))
 
+	// Gather intermediate keys with the same hash
+	intermediate := make(map[int][]KeyValue)
+	for _, kv := range kva {
+		hashID := ihash(kv.Key) % task.Reduce
+		intermediate[hashID] = append(intermediate[hashID], kv)
+	}
+
+	// Store gathered intermediate keys in files
+	for rTaskID, kvs := range intermediate {
+		filename := fmt.Sprintf("mr-%d-%d", task.Index, rTaskID)
+		tmpfilename := fmt.Sprintf("mr-%d-%d-%d", task.Index, rTaskID, os.Getpid())
+		file, err := os.Create(tmpfilename)
+		if err != nil {
+			log.Fatal("Intermediate File create failure <%s>", err)
+		}
+		defer file.Close()
+
+		// Write in JSON format to file
+		enc := json.NewEncoder(file)
+		for _, kv := range kvs {
+			err := enc.Encode(&kv)
+			if err != nil {
+				log.Fatal("Intermediate File encoding failure <%s>", err)
+			}
+		}
+		// Rename file
+		os.Rename(tmpfilename, filename)
+	}
 }
 
 // Handle Reduce Task
@@ -89,8 +122,8 @@ func requestTask() Treply {
 	return reply
 }
 
-// Request Finished Task
-func reportTask(task Treply) Tstatus {
+// Request Finished Task, handle Exit too
+func reportTask(task Treply) (Tstatus, bool) {
 	args := Targs{
 		Index: task.Index,
 		File:  task.File,
@@ -99,9 +132,10 @@ func reportTask(task Treply) Tstatus {
 	reply := Tstatus{}
 	ok := call("Coordinator.TaskDone", &args, &reply)
 	if !ok {
-		log.Fatal("Task report done call failure")
+		// Cant reach Coordinator, Assume no More Work and Exit
+		return Tstatus{}, true
 	}
-	return reply
+	return reply, false
 }
 
 // send an RPC request to the coordinator, wait for the response.
