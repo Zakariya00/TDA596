@@ -145,7 +145,8 @@ func reduceHandler(task Treply, reducef func(string, []string) string) {
 	// -----------------------------------------------------------
 	sort.Sort(ByKey(intermediate))
 	oname := fmt.Sprintf("mr-out-%d", task.Index)
-	ofile, _ := os.Create(oname)
+	tmponame := fmt.Sprintf("mr-out-%d-%d", task.Index, os.Getpid())
+	ofile, _ := os.Create(tmponame)
 	defer ofile.Close()
 
 	//
@@ -169,6 +170,8 @@ func reduceHandler(task Treply, reducef func(string, []string) string) {
 
 		i = j
 	}
+
+	os.Rename(tmponame, oname)
 }
 
 // Request New Task
