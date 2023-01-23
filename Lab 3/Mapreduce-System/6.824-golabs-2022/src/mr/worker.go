@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
+	"sort"
 	"time"
 )
 import "log"
@@ -38,9 +40,10 @@ func Worker(mapf func(string, string) []KeyValue,
 	reducef func(string, []string) string) {
 
 	// Your worker implementation here.
+	var task = Treply{}
 	var stop = false
 	for !stop {
-		task := requestTask()
+		task, stop = requestTask()
 		switch task.Type {
 
 		case MAP:
@@ -54,7 +57,10 @@ func Worker(mapf func(string, string) []KeyValue,
 		case SUSPEND:
 			time.Sleep(1000 * time.Millisecond)
 
+		default:
+			continue
 		}
+
 	}
 }
 
@@ -108,18 +114,73 @@ func mapHandler(task Treply, mapf func(string, string) []KeyValue) {
 
 // Handle Reduce Task
 func reduceHandler(task Treply, reducef func(string, []string) string) {
+	// Get all files for reduce
+	currDir, err := os.Getwd()
+	if err != nil {
+		log.Fatal("Get current Directory failure <%s>", err)
+	}
+	files, err := filepath.Glob(fmt.Sprintf("%v/mr-%d-%d", currDir, "*", task.Index))
+	if err != nil {
+		log.Fatal("Geting reduce files failure <%s>", err)
+	}
 
+	intermediate := []KeyValue{}
+	for _, filename := range files {
+		file, err := os.Open(filename)
+		if err != nil {
+			log.Fatal("Reduce file open failure <%s>", err)
+		}
+		defer file.Close()
+
+		dec := json.NewDecoder(file)
+		for {
+			var kv KeyValue
+			if err := dec.Decode(&kv); err != nil {
+				break
+			}
+			intermediate = append(intermediate, kv)
+		}
+	}
+
+	// -----------------------------------------------------------
+	sort.Sort(ByKey(intermediate))
+	oname := fmt.Sprintf("mr-out-%d", task.Index)
+	ofile, _ := os.Create(oname)
+	defer ofile.Close()
+
+	//
+	// call Reduce on each distinct key in intermediate[],
+	// and print the result to mr-out-0.
+	//
+	i := 0
+	for i < len(intermediate) {
+		j := i + 1
+		for j < len(intermediate) && intermediate[j].Key == intermediate[i].Key {
+			j++
+		}
+		values := []string{}
+		for k := i; k < j; k++ {
+			values = append(values, intermediate[k].Value)
+		}
+		output := reducef(intermediate[i].Key, values)
+
+		// this is the correct format for each line of Reduce output.
+		fmt.Fprintf(ofile, "%v %v\n", intermediate[i].Key, output)
+
+		i = j
+	}
 }
 
 // Request New Task
-func requestTask() Treply {
+func requestTask() (Treply, bool) {
 	args := Targs{}
 	reply := Treply{}
 	ok := call("Coordinator.SendTask", &args, &reply)
 	if !ok {
-		log.Fatal("Task request call failure")
+		// Cant reach Coordinator, Assume no More Work and Exit
+		return Treply{}, true
 	}
-	return reply
+	return reply, false
 }
 
 // Request Finished Task, handle Exit too
