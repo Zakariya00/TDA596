@@ -45,11 +45,10 @@ func (c *Coordinator) SendTask(args *Targs, reply *Treply) error {
 				return nil
 			}
 		}
-		return nil
 	}
 
 	// If there are no remaining Map or Reduce tasks, Suspends worker
-	*reply = Treply{-1, "", SUSPEND, -1}
+	*reply = Treply{-1, "", SUSPEND, len(c.rTasks)}
 	return nil
 }
 
@@ -75,7 +74,7 @@ func (c *Coordinator) TaskDone(args *Targs, reply *Tstatus) error {
 
 	case REDUCE:
 		// Check if Task has not already been Completed
-		if c.rTasks[args.Index].state != FINISHED {
+		if c.rTasks[args.Index].state != FINISHED && !(c.mRem > 0) {
 			c.rTasks[args.Index].state = FINISHED
 			c.rRem--
 
@@ -96,15 +95,19 @@ func (c *Coordinator) timeoutHandler() {
 		if c.mRem > 0 {
 			for i, e := range c.mTasks {
 				// Checks for timeout
-				if e.start.Before(time.Now().Add(-10 * time.Second)) {
-					c.mTasks[i].state = TIMEOUT
+				if e.state == TAKEN {
+					if e.start.Before(time.Now().Add(-10 * time.Second)) {
+						c.mTasks[i].state = TIMEOUT
+					}
 				}
 			}
 		} else if c.rRem > 0 {
 			for i, e := range c.rTasks {
 				// Checks for timeout
-				if e.start.Before(time.Now().Add(-10 * time.Second)) {
-					c.rTasks[i].state = TIMEOUT
+				if e.state == TAKEN {
+					if e.start.Before(time.Now().Add(-10 * time.Second)) {
+						c.rTasks[i].state = TIMEOUT
+					}
 				}
 			}
 		}
@@ -154,9 +157,8 @@ func MakeCoordinator(files []string, nReduce int) *Coordinator {
 
 	// Initialize Reduce Tasks
 	for i := 0; i < nReduce; i++ {
-		c.mTasks[i] = Task{index: i, state: FREE, taskT: REDUCE}
+		c.rTasks[i] = Task{index: i, state: FREE, taskT: REDUCE}
 	}
-
 	go c.timeoutHandler()
 
 	c.server()

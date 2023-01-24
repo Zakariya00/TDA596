@@ -52,7 +52,7 @@ type Treply struct {
 	Index  int        // Assigned Task index
 	File   string     // Assigned Task file
 	Type   TypeOfTask // Assigned Task type
-	Reduce int        //
+	Reduce int        // nReduce
 }
 
 type Tstatus struct {
